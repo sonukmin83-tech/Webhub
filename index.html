@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebHub — Discover Amazing Websites</title>
+<meta name="description" content="WebHub is a public directory of awesome websites. Search, explore, rate and submit your favourite websites.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="container header-inner">
+    <a class="logo" href="#" onclick="showView('home');return false;">
+      <span class="logo-icon">🌐</span>
+      <span class="logo-text">Web<em>Hub</em></span>
+    </a>
+    <nav class="nav">
+      <button class="nav-link" onclick="showView('home')">Directory</button>
+      <button class="nav-link" id="navMy" onclick="showView('my')" style="display:none">My Submissions</button>
+      <button class="nav-link" id="navAdmin" onclick="showView('admin')" style="display:none">Admin Panel <span class="badge" id="pendingBadge" style="display:none">0</span></button>
+    </nav>
+    <div class="header-actions">
+      <button class="btn btn-primary" id="btnSubmitTop" onclick="openSubmit()">+ Submit Website</button>
+      <div id="authArea"></div>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleMobileNav()">☰</button>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <button class="nav-link" onclick="showView('home');toggleMobileNav(true)">Directory</button>
+    <button class="nav-link" id="navMyM" onclick="showView('my');toggleMobileNav(true)" style="display:none">My Submissions</button>
+    <button class="nav-link" id="navAdminM" onclick="showView('admin');toggleMobileNav(true)" style="display:none">Admin Panel</button>
+    <button class="btn btn-primary" onclick="openSubmit();toggleMobileNav(true)">+ Submit Website</button>
+  </div>
+</header>
+
+<!-- ============ HOME VIEW ============ -->
+<main id="view-home">
+  <section class="hero">
+    <div class="container">
+      <h1>Discover Amazing Websites 🌐</h1>
+      <p class="hero-sub">Search, explore and rate the best websites on the internet — or submit your own and share it with the world.</p>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search websites... (e.g. music, shopping, AI)" oninput="onSearch()">
+        <select id="sortSelect" onchange="loadWebsites()">
+          <option value="newest">Newest first</option>
+          <option value="rating">Highest rated</option>
+          <option value="popular">Most visited</option>
+        </select>
+      </div>
+      <div class="cat-pills" id="catPills"></div>
+      <div class="stats-row" id="statsRow"></div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="section-head">
+      <h2 id="gridTitle">Latest Websites</h2>
+      <span class="count" id="gridCount"></span>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="emptyState" style="display:none">
+      <div class="empty-icon">🧭</div>
+      <h3>No websites found</h3>
+      <p>Try a different search — or be the first to submit one!</p>
+      <button class="btn btn-primary" onclick="openSubmit()">+ Submit a Website</button>
+    </div>
+  </section>
+</main>
+
+<!-- ============ MY SUBMISSIONS VIEW ============ -->
+<main id="view-my" style="display:none">
+  <section class="container page">
+    <h2 class="page-title">📤 My Submissions</h2>
+    <p class="page-sub">Websites you submitted and their approval status.</p>
+    <div class="grid" id="myGrid"></div>
+    <div class="empty" id="myEmpty" style="display:none">
+      <div class="empty-icon">📭</div>
+      <h3>You haven't submitted anything yet</h3>
+      <button class="btn btn-primary" onclick="openSubmit()">+ Submit your first website</button>
+    </div>
+  </section>
+</main>
+
+<!-- ============ ADMIN VIEW ============ -->
+<main id="view-admin" style="display:none">
+  <section class="container page">
+    <h2 class="page-title">🛡️ Admin Panel</h2>
+    <p class="page-sub">Approve or reject submitted websites. Approved websites go live publicly.</p>
+    <div class="admin-stats" id="adminStats"></div>
+    <div class="tabs">
+      <button class="tab active" id="tabPending" onclick="adminTab('pending')">⏳ Pending Requests <span class="badge" id="pendingBadge2">0</span></button>
+      <button class="tab" id="tabAll" onclick="adminTab('all')">🌐 All Websites</button>
+      <button class="tab" id="tabUsers" onclick="adminTab('users')">👥 Users</button>
+    </div>
+    <div id="adminContent"></div>
+  </section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="logo"><span class="logo-icon">🌐</span><span class="logo-text">Web<em>Hub</em></span></div>
+    <p>India's friendly public directory of awesome websites. Search it, rate it, share it — and submit your own!</p>
+    <p class="footer-small">Made with ❤️ • WebHub © <span id="year"></span></p>
+  </div>
+</footer>
+
+<!-- ============ AUTH MODAL ============ -->
+<div class="modal-overlay" id="authModal" style="display:none" onclick="if(event.target===this)closeModal('authModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+    <div class="tabs tabs-center">
+      <button class="tab active" id="authTabLogin" onclick="authTab('login')">Login</button>
+      <button class="tab" id="authTabRegister" onclick="authTab('register')">Register</button>
+    </div>
+    <form id="loginForm" onsubmit="doLogin(event)">
+      <label>Email</label>
+      <input type="email" id="loginEmail" required placeholder="you@example.com">
+      <label>Password</label>
+      <input type="password" id="loginPassword" required placeholder="Your password">
+      <button class="btn btn-primary btn-block" type="submit">Login</button>
+      <p class="form-note">Browsing is free without login. You only need an account to submit a website.</p>
+    </form>
+    <form id="registerForm" style="display:none" onsubmit="doRegister(event)">
+      <label>Your Name</label>
+      <input type="text" id="regName" required placeholder="e.g. Rahul Kumar">
+      <label>Email</label>
+      <input type="email" id="regEmail" required placeholder="you@example.com">
+      <label>Password</label>
+      <input type="password" id="regPassword" required minlength="6" placeholder="Min. 6 characters">
+      <button class="btn btn-primary btn-block" type="submit">Create Account</button>
+      <p class="form-note">Register with your name, email and password — then login anytime with the same email & password.</p>
+    </form>
+    <div class="form-error" id="authError"></div>
+  </div>
+</div>
+
+<!-- ============ SUBMIT MODAL ============ -->
+<div class="modal-overlay" id="submitModal" style="display:none" onclick="if(event.target===this)closeModal('submitModal')">
+  <div class="modal modal-wide">
+    <button class="modal-close" onclick="closeModal('submitModal')">✕</button>
+    <h3 class="modal-title">🚀 Submit a Website</h3>
+    <p class="modal-sub">Fill the details below. Your website will be reviewed by the admin and published after approval.</p>
+    <form onsubmit="doSubmit(event)">
+      <label>Website Name *</label>
+      <input type="text" id="subName" required placeholder="e.g. My Awesome Blog">
+      <label>Website URL *</label>
+      <input type="url" id="subUrl" required placeholder="https://example.com">
+      <label>Category *</label>
+      <select id="subCategory" required></select>
+      <label>Description *</label>
+      <textarea id="subDesc" required rows="3" placeholder="Write a short description about this website..."></textarea>
+      <label>Logo *</label>
+      <div class="logo-input-row">
+        <div class="logo-preview" id="logoPreview">🖼️</div>
+        <div class="logo-input-fields">
+          <input type="file" id="subLogoFile" accept="image/*" onchange="onLogoFile(this)">
+          <span class="or">— or paste an image URL —</span>
+          <input type="url" id="subLogoUrl" placeholder="https://example.com/logo.png" oninput="onLogoUrl(this)">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit" id="submitBtn">Submit for Approval</button>
+    </form>
+    <div class="form-error" id="submitError"></div>
+  </div>
+</div>
+
+<!-- ============ PROFILE MODAL ============ -->
+<div class="modal-overlay" id="profileModal" style="display:none" onclick="if(event.target===this)closeModal('profileModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+    <h3 class="modal-title">👤 My Profile</h3>
+    <div id="profileInfo"></div>
+    <form onsubmit="doChangePassword(event)">
+      <label>Current Password</label>
+      <input type="password" id="cpCurrent" required>
+      <label>New Password</label>
+      <input type="password" id="cpNew" required minlength="6">
+      <button class="btn btn-outline btn-block" type="submit">Change Password</button>
+    </form>
+    <button class="btn btn-danger btn-block" onclick="doLogout()">Logout</button>
+    <div class="form-error" id="profileError"></div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
